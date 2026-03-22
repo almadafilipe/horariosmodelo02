@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Horários 2026 – Escola Modelo de Conceição</title>
+<meta name="theme-color" content="#1a5276">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Horários CPH">
+<link rel="manifest" id="pwa-manifest">
+<link rel="apple-touch-icon" id="apple-icon" href="">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #1a5276;
+    --primary-light: #2471a3;
+    --primary-lighter: #3498db;
+    --gold: #d4ac0d;
+    --gold-light: #f1c40f;
+    --bg: #eaf2f8;
+    --card: #ffffff;
+    --border: #d6e4f0;
+    --text: #17202a;
+    --muted: #5d6d7e;
+    --mon: #e74c3c;
+    --tue: #27ae60;
+    --wed: #2980b9;
+    --thu: #e67e22;
+    --fri: #8e44ad;
+    --radius: 12px;
+    --shadow: 0 4px 20px rgba(26,82,118,0.12);
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 55%, var(--primary-lighter) 100%);
+    padding: 2rem 2rem 1.8rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light), var(--gold));
+  }
+  header h1 {
+    font-size: clamp(1.2rem, 3vw, 2rem);
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  header p {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.8);
+    margin-top: 0.3rem;
+    font-weight: 300;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+
+  /* LEGENDA */
+  .legenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.8rem;
+    justify-content: center;
+    padding: 0.9rem 1rem 0.5rem;
+    font-size: 0.73rem;
+    color: var(--muted);
+  }
+  .legenda span { font-weight: 700; color: var(--primary); }
+
+  /* TABS */
+  .tabs {
+    display: flex;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 0.8rem 1rem 0.4rem;
+  }
+  .tab-btn {
+    display: flex; align-items: center; gap: 0.45rem;
+    padding: 0.6rem 1.6rem;
+    border-radius: 99px;
+    border: 2px solid transparent;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.95rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+    background: #fff; color: var(--muted);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+  }
+  .tab-btn.active-morning { background: var(--gold); color: #fff; border-color: var(--gold); box-shadow: 0 4px 16px rgba(212,172,13,0.4); }
+  .tab-btn.active-afternoon { background: var(--primary); color: #fff; border-color: var(--primary); box-shadow: 0 4px 16px rgba(26,82,118,0.35); }
+
+  .turno-label {
+    text-align: center; font-size: 0.75rem; font-weight: 700;
+    letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--muted); padding: 0.2rem 0 0.6rem;
+  }
+
+  /* CONTENT */
+  .content { display: none; }
+  .content.active { display: block; }
+
+  /* DAY BAR */
+  .day-bar {
+    display: flex; justify-content: center; flex-wrap: wrap;
+    gap: 0.45rem; padding: 0.4rem 1rem 0.9rem;
+  }
+  .day-btn {
+    padding: 0.4rem 1rem; border-radius: 99px;
+    border: 2px solid var(--border); background: #fff;
+    font-family: 'Nunito', sans-serif; font-size: 0.85rem; font-weight: 700;
+    cursor: pointer; color: var(--muted); transition: all 0.18s;
+  }
+  .day-btn.d-seg.active { background: var(--mon); border-color: var(--mon); color: #fff; }
+  .day-btn.d-ter.active { background: var(--tue); border-color: var(--tue); color: #fff; }
+  .day-btn.d-qua.active { background: var(--wed); border-color: var(--wed); color: #fff; }
+  .day-btn.d-qui.active { background: var(--thu); border-color: var(--thu); color: #fff; }
+  .day-btn.d-sex.active { background: var(--fri); border-color: var(--fri); color: #fff; }
+
+  /* SCHEDULE */
+  .schedule-wrap { padding: 0 1rem 2rem; max-width: 1100px; margin: 0 auto; }
+  .day-section { display: none; }
+  .day-section.active { display: block; }
+
+  .day-header { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.9rem; }
+  .day-header .pill {
+    padding: 0.28rem 1.1rem; border-radius: 99px;
+    font-size: 0.9rem; font-weight: 800; color: #fff; letter-spacing: 0.03em;
+  }
+  .seg .pill { background: var(--mon); }
+  .ter .pill { background: var(--tue); }
+  .qua .pill { background: var(--wed); }
+  .qui .pill { background: var(--thu); }
+  .sex .pill { background: var(--fri); }
+
+  .tbl-wrap { overflow-x: auto; border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; background: var(--card); font-size: 0.85rem; }
+
+  thead tr { background: var(--primary); color: #fff; }
+  .morning-content thead tr { background: #7d6608; }
+
+  th { padding: 0.8rem 0.9rem; text-align: left; font-weight: 800; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; white-space: nowrap; }
+  th:first-child { width: 110px; }
+
+  tbody tr { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: #f0f7ff; }
+
+  td { padding: 0.62rem 0.9rem; vertical-align: middle; }
+  td:first-child { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: var(--muted); white-space: nowrap; }
+
+  .subject { display: inline-flex; flex-direction: column; gap: 0.08rem; }
+  .subject .name { font-weight: 700; font-size: 0.85rem; color: var(--text); }
+  .subject .teacher { font-size: 0.72rem; color: var(--primary-light); font-weight: 600; }
+  .morning-content .subject .teacher { color: #9a7d0a; }
+
+  .s-port .name  { color: #1a5276; }
+  .s-mat  .name  { color: #922b21; }
+  .s-cien .name  { color: #1e8449; }
+  .s-geo  .name  { color: #6c3483; }
+  .s-hist .name  { color: #935116; }
+  .s-arte .name  { color: #c0392b; }
+  .s-ing  .name  { color: #117a65; }
+  .s-edfi .name  { color: #1a5276; }
+  .s-rel  .name  { color: #5d4037; }
+  .s-lpt  .name  { color: #424949; }
+
+  /* PWA FAB */
+  #pwa-fab {
+    position: fixed;
+    bottom: calc(1.2rem + env(safe-area-inset-bottom));
+    right: 1.2rem; z-index: 9999;
+    display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;
+    font-family: 'Nunito', sans-serif;
+  }
+  #pwa-fab.hidden { display: none; }
+  #btn-install-fab {
+    display: flex; align-items: center; gap: 0.5rem;
+    background: var(--primary); color: #fff; border: none;
+    border-radius: 99px; padding: 0.7rem 1.2rem 0.7rem 1rem;
+    font-family: 'Nunito', sans-serif; font-size: 0.9rem; font-weight: 800;
+    cursor: pointer; box-shadow: 0 4px 20px rgba(26,82,118,0.45);
+    transition: transform 0.15s; white-space: nowrap;
+  }
+  #btn-install-fab:hover { transform: translateY(-2px); }
+  #ios-tip {
+    display: none; background: #17202a; color: #fff;
+    border-radius: 12px; padding: 0.85rem 1rem;
+    font-size: 0.8rem; line-height: 1.55; max-width: 230px;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.3); position: relative;
+  }
+  #ios-tip::after {
+    content: ''; position: absolute; bottom: -8px; right: 22px;
+    border: 8px solid transparent; border-bottom: none; border-top-color: #17202a;
+  }
+  #ios-tip.show { display: block; }
+  #ios-tip strong { display: block; margin-bottom: 0.3rem; }
+  #ios-tip .tip-step { display: flex; align-items: center; gap: 0.4rem; margin-top: 0.25rem; }
+  #btn-close-tip { position: absolute; top: 6px; right: 8px; background: none; border: none; color: rgba(255,255,255,0.5); font-size: 1rem; cursor: pointer; }
+
+  footer { text-align: center; padding: 1.2rem; font-size: 0.75rem; color: var(--muted); border-top: 1px solid var(--border); }
+
+  @media (max-width: 600px) { th, td { padding: 0.5rem 0.45rem; font-size: 0.77rem; } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Escola Modelo de Conceição – CPH</h1>
+  <p>Horário do Ano Letivo 2026 · Conceição</p>
+</header>
+
+<div class="legenda">
+  <div><span>PORT</span> Língua Portuguesa</div>
+  <div><span>MAT</span> Matemática</div>
+  <div><span>HIST</span> História</div>
+  <div><span>GEO</span> Geografia</div>
+  <div><span>CIE</span> Ciências</div>
+  <div><span>EDF</span> Educação Física</div>
+  <div><span>ARTE</span> Arte</div>
+  <div><span>ING</span> Inglês</div>
+  <div><span>LPT</span> Lit. e Produção Textual</div>
+  <div><span>REL</span> Ensino Religioso</div>
+</div>
+
+<div class="tabs">
+  <button class="tab-btn active-morning" onclick="switchTurno('morning')">🌅 Matutino</button>
+  <button class="tab-btn" onclick="switchTurno('afternoon')">🌤 Vespertino</button>
+</div>
+<div class="turno-label" id="turno-label">Turno da Manhã · 7h30 – 11h30</div>
+
+<!-- ==================== MATUTINO ==================== -->
+<div class="content morning-content active" id="morning">
+  <div class="day-bar">
+    <button class="day-btn d-seg active" onclick="switchDay('morning','seg')">Segunda</button>
+    <button class="day-btn d-ter" onclick="switchDay('morning','ter')">Terça</button>
+    <button class="day-btn d-qua" onclick="switchDay('morning','qua')">Quarta</button>
+    <button class="day-btn d-qui" onclick="switchDay('morning','qui')">Quinta</button>
+    <button class="day-btn d-sex" onclick="switchDay('morning','sex')">Sexta</button>
+  </div>
+  <div class="schedule-wrap">
+
+    <!-- SEGUNDA MAT -->
+    <div class="day-section seg active">
+      <div class="day-header seg"><span class="pill">Segunda-Feira</span></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Horário</th><th>6º M1</th><th>6º M2</th><th>7º M1</th><th>7º M2</th><th>8º M1</th><th>9º M1</th></tr></thead>
+        <tbody>
+          <tr><td>7:30–8:15</td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Luciene</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+            <td><div class="subject s-arte"><span class="name">ARTE</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+          </tr>
+          <tr><td>8:15–9:00</td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Luciene</span></div></td>
+            <td><div class="subject s-arte"><span class="name">ARTE</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+          </tr>
+          <tr><td>9:00–9:45</td>
+            <td><div class="subject s-arte"><span class="name">ARTE</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Luciene</span></div></td>
+            <td><div class="subject s-edfi"><span class="name">EDF</span><span class="teacher">Naildes</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+          </tr>
+          <tr><td>10:00–10:45</td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Luciene</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-edfi"><span class="name">EDF</span><span class="teacher">Naildes</span></div></td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+          </tr>
+          <tr><td>10:45–11:30</td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-rel"><span class="name">REL</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Regina</span></div></td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- TERÇA MAT -->
+    <div class="day-section ter">
+      <div class="day-header ter"><span class="pill">Terça-Feira</span></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Horário</th><th>6º M1</th><th>6º M2</th><th>7º M1</th><th>7º M2</th><th>8º M1</th><th>9º M1</th></tr></thead>
+        <tbody>
+          <tr><td>7:30–8:15</td>
+            <td><div class="subject s-edfi"><span class="name">EDF</span><span class="teacher">Naildes</span></div></td>
+            <td><div class="subject s-edfi"><span class="name">EDF</span><span class="teacher">Naildes</span></div></td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-rel"><span class="name">REL</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-lpt"><span class="name">LPT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+          </tr>
+          <tr><td>8:15–9:00</td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Gilmara</span></div></td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-lpt"><span class="name">LPT</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Ivonete</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+          </tr>
+          <tr><td>9:00–9:45</td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-ing"><span class="name">ING</span><span class="teacher">Denise</span></div></td>
+            <td><div class="subject s-edfi"><span class="name">EDF</span><span class="teacher">Naildes</span></div></td>
+            <td><div class="subject s-arte"><span class="name">ARTE</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-arte"><span class="name">ARTE</span><span class="teacher">Regina</span></div></td>
+          </tr>
+          <tr><td>10:00–10:45</td>
+            <td><div class="subject s-ing"><span class="name">ING</span><span class="teacher">Denise</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-ing"><span class="name">ING</span><span class="teacher">Denise</span></div></td>
+            <td><div class="subject s-arte"><span class="name">ARTE</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+          </tr>
+          <tr><td>10:45–11:30</td>
+            <td><div class="subject s-arte"><span class="name">ARTE</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-edfi"><span class="name">EDF</span><span class="teacher">Naildes</span></div></td>
+            <td><div class="subject s-edfi"><span class="name">EDF</span><span class="teacher">Naildes</span></div></td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Regina</span></div></td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- QUARTA MAT -->
+    <div class="day-section qua">
+      <div class="day-header qua"><span class="pill">Quarta-Feira</span></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Horário</th><th>6º M1</th><th>6º M2</th><th>7º M1</th><th>7º M2</th><th>8º M1</th><th>9º M1</th></tr></thead>
+        <tbody>
+          <tr><td>7:30–8:15</td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-lpt"><span class="name">LPT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Luciene</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Ivonete</span></div></td>
+          </tr>
+          <tr><td>8:15–9:00</td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Luciene</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-ing"><span class="name">ING</span><span class="teacher">Denise</span></div></td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Ivonete</span></div></td>
+          </tr>
+          <tr><td>9:00–9:45</td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Luciene</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Luciene</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Ivonete</span></div></td>
+            <td><div class="subject s-lpt"><span class="name">LPT</span><span class="teacher">Jacilene</span></div></td>
+          </tr>
+          <tr><td>10:00–10:45</td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Luciene</span></div></td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-ing"><span class="name">ING</span><span class="teacher">Denise</span></div></td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Ivonete</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+          </tr>
+          <tr><td>10:45–11:30</td>
+            <td><div class="subject s-rel"><span class="name">REL</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-rel"><span class="name">REL</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-rel"><span class="name">REL</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-lpt"><span class="name">LPT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- QUINTA MAT -->
+    <div class="day-section qui">
+      <div class="day-header qui"><span class="pill">Quinta-Feira</span></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Horário</th><th>6º M1</th><th>6º M2</th><th>7º M1</th><th>7º M2</th><th>8º M1</th><th>9º M1</th></tr></thead>
+        <tbody>
+          <tr><td>7:30–8:15</td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-rel"><span class="name">REL</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-ing"><span class="name">ING</span><span class="teacher">Denise</span></div></td>
+            <td><div class="subject s-arte"><span class="name">ARTE</span><span class="teacher">Dórinha</span></div></td>
+          </tr>
+          <tr><td>8:15–9:00</td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-arte"><span class="name">ARTE</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-rel"><span class="name">REL</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-ing"><span class="name">ING</span><span class="teacher">Denise</span></div></td>
+          </tr>
+          <tr><td>9:00–9:45</td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+          </tr>
+          <tr><td>10:00–10:45</td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-ing"><span class="name">ING</span><span class="teacher">Denise</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+          </tr>
+          <tr><td>10:45–11:30</td>
+            <td><div class="subject s-ing"><span class="name">ING</span><span class="teacher">Denise</span></div></td>
+            <td><div class="subject s-arte"><span class="name">ARTE</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-lpt"><span class="name">LPT</span><span class="teacher">Samala</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- SEXTA MAT -->
+    <div class="day-section sex">
+      <div class="day-header sex"><span class="pill">Sexta-Feira</span></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Horário</th><th>6º M1</th><th>6º M2</th><th>7º M1</th><th>7º M2</th><th>8º M1</th><th>9º M1</th></tr></thead>
+        <tbody>
+          <tr><td>7:30–8:15</td>
+            <td><div class="subject s-lpt"><span class="name">LPT</span><span class="teacher">Lidiane</span></div></td>
+            <td><div class="subject s-edfi"><span class="name">EDF</span><span class="teacher">Naildes</span></div></td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Gilmara</span></div></td>
+            <td><div class="subject s-arte"><span class="name">ARTE</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-ing"><span class="name">ING</span><span class="teacher">Denise</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+          </tr>
+          <tr><td>8:15–9:00</td>
+            <td><div class="subject s-edfi"><span class="name">EDF</span><span class="teacher">Naildes</span></div></td>
+            <td><div class="subject s-edfi"><span class="name">EDF</span><span class="teacher">Naildes</span></div></td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+            <td><div class="subject s-edfi"><span class="name">EDF</span><span class="teacher">Naildes</span></div></td>
+            <td><div class="subject s-arte"><span class="name">ARTE</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+          </tr>
+          <tr><td>9:00–9:45</td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-lpt"><span class="name">LPT</span><span class="teacher">Lidiane</span></div></td>
+            <td><div class="subject s-lpt"><span class="name">LPT</span><span class="teacher">Samala</span></div></td>
+            <td><div class="subject s-edfi"><span class="name">EDF</span><span class="teacher">Naildes</span></div></td>
+            <td><div class="subject s-edfi"><span class="name">EDF</span><span class="teacher">Naildes</span></div></td>
+            <td><div class="subject s-ing"><span class="name">ING</span><span class="teacher">Denise</span></div></td>
+          </tr>
+          <tr><td>10:00–10:45</td>
+            <td><div class="subject s-ing"><span class="name">ING</span><span class="teacher">Denise</span></div></td>
+            <td><div class="subject s-ing"><span class="name">ING</span><span class="teacher">Denise</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-lpt"><span class="name">LPT</span><span class="teacher">Samala</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+          </tr>
+          <tr><td>10:45–11:30</td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-arte"><span class="name">ARTE</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-arte"><span class="name">ARTE</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-edfi"><span class="name">EDF</span><span class="teacher">Naildes</span></div></td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+  </div>
+</div><!-- /morning -->
+
+<!-- ==================== VESPERTINO ==================== -->
+<div class="content afternoon-content" id="afternoon">
+  <div class="day-bar">
+    <button class="day-btn d-seg active" onclick="switchDay('afternoon','seg')">Segunda</button>
+    <button class="day-btn d-ter" onclick="switchDay('afternoon','ter')">Terça</button>
+    <button class="day-btn d-qua" onclick="switchDay('afternoon','qua')">Quarta</button>
+    <button class="day-btn d-qui" onclick="switchDay('afternoon','qui')">Quinta</button>
+    <button class="day-btn d-sex" onclick="switchDay('afternoon','sex')">Sexta</button>
+  </div>
+  <div class="schedule-wrap">
+
+    <!-- SEGUNDA VESP -->
+    <div class="day-section seg active">
+      <div class="day-header seg"><span class="pill">Segunda-Feira</span></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Horário</th><th>6º/7º V1</th><th>8º/9º V1</th><th>8º V1</th><th>9º V1</th></tr></thead>
+        <tbody>
+          <tr><td>13:00–13:45</td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Ivonete</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-lpt"><span class="name">LPT</span><span class="teacher">Jacilene</span></div></td>
+          </tr>
+          <tr><td>13:45–14:30</td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Ivonete</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-lpt"><span class="name">LPT</span><span class="teacher">Jacilene</span></div></td>
+          </tr>
+          <tr><td>14:30–15:15</td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Ivonete</span></div></td>
+          </tr>
+          <tr><td>15:30–16:15</td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-edfi"><span class="name">EDF</span><span class="teacher">Naildes</span></div></td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Ivonete</span></div></td>
+          </tr>
+          <tr><td>16:15–17:00</td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-edfi"><span class="name">EDF</span><span class="teacher">Naildes</span></div></td>
+            <td><div class="subject s-rel"><span class="name">REL</span><span class="teacher">Regina</span></div></td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- TERÇA VESP -->
+    <div class="day-section ter">
+      <div class="day-header ter"><span class="pill">Terça-Feira</span></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Horário</th><th>6º/7º V1</th><th>8º/9º V1</th><th>8º V1</th><th>9º V1</th></tr></thead>
+        <tbody>
+          <tr><td>13:00–13:45</td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Ivonete</span></div></td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+          </tr>
+          <tr><td>13:45–14:30</td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Ivonete</span></div></td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+          </tr>
+          <tr><td>14:30–15:15</td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Luciene</span></div></td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Ivonete</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+          </tr>
+          <tr><td>15:30–16:15</td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Luciene</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Ivonete</span></div></td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Regina</span></div></td>
+          </tr>
+          <tr><td>16:15–17:00</td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Luciene</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Regina</span></div></td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- QUARTA VESP -->
+    <div class="day-section qua">
+      <div class="day-header qua"><span class="pill">Quarta-Feira</span></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Horário</th><th>6º/7º V1</th><th>8º/9º V1</th><th>8º V1</th><th>9º V1</th></tr></thead>
+        <tbody>
+          <tr><td>13:00–13:45</td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+          </tr>
+          <tr><td>13:45–14:30</td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+          </tr>
+          <tr><td>14:30–15:15</td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Luciene</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+          </tr>
+          <tr><td>15:30–16:15</td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Luciene</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-lpt"><span class="name">LPT</span><span class="teacher">Lidiane</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+          </tr>
+          <tr><td>16:15–17:00</td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-lpt"><span class="name">LPT</span><span class="teacher">Lidiane</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Lidiane</span></div></td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- QUINTA VESP -->
+    <div class="day-section qui">
+      <div class="day-header qui"><span class="pill">Quinta-Feira</span></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Horário</th><th>6º/7º V1</th><th>8º/9º V1</th><th>8º V1</th><th>9º V1</th></tr></thead>
+        <tbody>
+          <tr><td>13:00–13:45</td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+          </tr>
+          <tr><td>13:45–14:30</td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+          </tr>
+          <tr><td>14:30–15:15</td>
+            <td><div class="subject s-geo"><span class="name">GEO</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-rel"><span class="name">REL</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+          </tr>
+          <tr><td>15:30–16:15</td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Gilmara</span></div></td>
+          </tr>
+          <tr><td>16:15–17:00</td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Regina</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-ing"><span class="name">ING</span><span class="teacher">Denise</span></div></td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <!-- SEXTA VESP -->
+    <div class="day-section sex">
+      <div class="day-header sex"><span class="pill">Sexta-Feira</span></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Horário</th><th>6º/7º V1</th><th>8º/9º V1</th><th>8º V1</th><th>9º V1</th></tr></thead>
+        <tbody>
+          <tr><td>13:00–13:45</td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Valneide</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Valneide</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Jacó</span></div></td>
+            <td><div class="subject s-edfi"><span class="name">EDF</span><span class="teacher">Naildes</span></div></td>
+          </tr>
+          <tr><td>13:45–14:30</td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Valneide</span></div></td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Lene</span></div></td>
+            <td><div class="subject s-arte"><span class="name">ARTE</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-edfi"><span class="name">EDF</span><span class="teacher">Naildes</span></div></td>
+          </tr>
+          <tr><td>14:30–15:15</td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-hist"><span class="name">HIST</span><span class="teacher">Lene</span></div></td>
+            <td><div class="subject s-arte"><span class="name">ARTE</span><span class="teacher">Dórinha</span></div></td>
+            <td><div class="subject s-ing"><span class="name">ING</span><span class="teacher">Denise</span></div></td>
+          </tr>
+          <tr><td>15:30–16:15</td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-mat"><span class="name">MAT</span><span class="teacher">Valneide</span></div></td>
+            <td><div class="subject s-ing"><span class="name">ING</span><span class="teacher">Denise</span></div></td>
+            <td><div class="subject s-arte"><span class="name">ARTE</span><span class="teacher">Dórinha</span></div></td>
+          </tr>
+          <tr><td>16:15–17:00</td>
+            <td><div class="subject s-port"><span class="name">PORT</span><span class="teacher">Jacilene</span></div></td>
+            <td><div class="subject s-cien"><span class="name">CIE</span><span class="teacher">Lu</span></div></td>
+            <td><div class="subject s-ing"><span class="name">ING</span><span class="teacher">Denise</span></div></td>
+            <td><div class="subject s-arte"><span class="name">ARTE</span><span class="teacher">Dórinha</span></div></td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>
+
+  </div>
+</div><!-- /afternoon -->
+
+<!-- PWA FAB -->
+<div id="pwa-fab">
+  <div id="ios-tip">
+    <button id="btn-close-tip">✕</button>
+    <strong>📲 Instalar no iPhone/iPad</strong>
+    <div class="tip-step">1. Toque em <strong>⎙ Compartilhar</strong></div>
+    <div class="tip-step">2. Role e toque em <strong>"Adicionar à Tela de Início"</strong></div>
+    <div class="tip-step">3. Confirme tocando em <strong>"Adicionar"</strong></div>
+  </div>
+  <button id="btn-install-fab"><span>📲</span> Instalar App</button>
+</div>
+
+<footer>Escola Modelo de Conceição – CPH · Conceição · Horário Letivo 2026</footer>
+
+<script>
+  /* ── Inline Manifest + Icons ── */
+  (function() {
+    const logo = "data:image/png;base64,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";
+
+    const manifest = {
+      name: "Horários – Escola Modelo CPH",
+      short_name: "Horários CPH",
+      description: "Horário do Ano Letivo 2026 – Escola Modelo de Conceição, Conceição",
+      start_url: "./",
+      scope: "./",
+      display: "standalone",
+      orientation: "portrait-primary",
+      background_color: "#1a5276",
+      theme_color: "#1a5276",
+      lang: "pt-BR",
+      categories: ["education"],
+      icons: [
+        { src: "data:image/png;base64,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", sizes: "192x192", type: "image/png", purpose: "any maskable" },
+        { src: "data:image/png;base64,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", sizes: "512x512", type: "image/png", purpose: "any maskable" }
+      ]
+    };
+
+    const blob = new Blob([JSON.stringify(manifest)], {type:'application/manifest+json'});
+    document.getElementById('pwa-manifest').href = URL.createObjectURL(blob);
+    document.getElementById('apple-icon').href = "data:image/png;base64,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";
+
+
+  })();
+
+  /* ── Service Worker — só registra se o protocolo suportar (https/http, não blob) ── */
+  if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
+    const swCode = `
+const CACHE='cph-v1';
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll([location.href])));self.skipWaiting();});
+self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim();});
+self.addEventListener('fetch',e=>{e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{if(res&&res.status===200&&res.type!=='opaque'){const c=res.clone();caches.open(CACHE).then(ca=>ca.put(e.request,c));}return res;}).catch(()=>caches.match(location.href))));});
+`;
+    try {
+      const blob = new Blob([swCode], {type:'application/javascript'});
+      const url = URL.createObjectURL(blob);
+      navigator.serviceWorker.register(url, {scope:'./'})
+        .then(r=>console.log('SW registrado:',r.scope))
+        .catch(()=>{/* blob não suportado neste ambiente */});
+    } catch(e) { /* silencioso */ }
+  }
+
+  /* ── PWA Install ── */
+  const fab=document.getElementById('pwa-fab');
+  const fabBtn=document.getElementById('btn-install-fab');
+  const iosTip=document.getElementById('ios-tip');
+  const closeTip=document.getElementById('btn-close-tip');
+  let deferredPrompt=null;
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone=window.navigator.standalone===true||window.matchMedia('(display-mode:standalone)').matches;
+  if(isStandalone) fab.classList.add('hidden');
+  window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;});
+  fabBtn.addEventListener('click',async()=>{
+    if(isIOS){iosTip.classList.toggle('show');}
+    else if(deferredPrompt){deferredPrompt.prompt();const{outcome}=await deferredPrompt.userChoice;deferredPrompt=null;if(outcome==='accepted')fab.classList.add('hidden');}
+    else{alert('No menu do navegador, procure "Adicionar à tela inicial".');}
+  });
+  closeTip.addEventListener('click',()=>iosTip.classList.remove('show'));
+  window.addEventListener('appinstalled',()=>{fab.classList.add('hidden');});
+
+  /* ── Turno / Dia ── */
+  const LABELS={morning:'Turno da Manhã · 7h30 – 11h30',afternoon:'Turno da Tarde · 13h00 – 17h00'};
+  function switchTurno(t){
+    document.querySelectorAll('.content').forEach(c=>c.classList.remove('active'));
+    document.getElementById(t).classList.add('active');
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active-morning','active-afternoon'));
+    document.querySelectorAll('.tab-btn')[t==='morning'?0:1].classList.add(t==='morning'?'active-morning':'active-afternoon');
+    document.getElementById('turno-label').textContent=LABELS[t];
+  }
+  function switchDay(t,d){
+    const w=document.getElementById(t);
+    w.querySelectorAll('.day-section').forEach(s=>s.classList.remove('active'));
+    w.querySelector('.day-section.'+d).classList.add('active');
+    w.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('active'));
+    w.querySelector('.day-btn.d-'+d).classList.add('active');
+  }
+</script>
+</body>
+</html>
